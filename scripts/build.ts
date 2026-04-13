@@ -20,7 +20,7 @@ await Bun.build({
   naming: '[name].cjs',
 })
 
-// Copy CSS
+// Copy static assets
 copyFileSync('src/gantt.css', 'dist/gantt.css')
 
-console.log('Built: dist/index.js, dist/index.cjs, dist/gantt.css')
+console.log('Built: dist/index.js, dist/index.cjs, dist/index.d.ts, dist/gantt.css')
