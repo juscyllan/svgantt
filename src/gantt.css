@@ -1,0 +1,97 @@
+/* obsidian-gantt — base styles */
+
+.og-outer {
+  display: flex;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.og-labels {
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: #0a0a0a;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.og-labels svg { display: block; }
+
+.og-scroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+.og-scroll.og-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.og-timeline { position: relative; }
+.og-timeline svg { display: block; }
+
+/* Scrollbar */
+.og-scroll::-webkit-scrollbar { height: 6px; }
+.og-scroll::-webkit-scrollbar-track { background: #0a0a0a; }
+.og-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+.og-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* Tooltip */
+.og-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.og-tooltip.visible { opacity: 1; }
+
+.og-tooltip-inner {
+  background: rgba(17, 17, 17, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.og-tooltip-arrow {
+  width: 10px;
+  height: 6px;
+  margin: 0 auto;
+  display: block;
+}
+
+.og-tooltip-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f5f5f5;
+  margin-bottom: 4px;
+}
+
+.og-tooltip-dates {
+  font-size: 11px;
+  color: #a3a3a3;
+  font-family: var(--font-mono, 'JetBrains Mono'), monospace;
+  margin-bottom: 6px;
+}
+
+.og-tooltip-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #a3a3a3;
+}
+
+.og-tooltip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
