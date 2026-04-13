@@ -1,34 +1,37 @@
 {
-	"name": "obsidian-gantt",
-	"version": "0.1.0",
-	"description": "Zero-dependency SVG Gantt chart. Works in browsers and Obsidian.",
-	"type": "module",
-	"main": "dist/index.cjs",
-	"module": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"exports": {
-		".": {
-			"import": "./dist/index.js",
-			"require": "./dist/index.cjs",
-			"types": "./dist/index.d.ts"
-		},
-		"./styles": "./dist/gantt.css"
-	},
-	"files": [
-		"dist"
-	],
-	"scripts": {
-		"build": "bun run scripts/build.ts",
-		"dev": "bun run --watch src/index.ts",
-		"typecheck": "tsc --noEmit"
-	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"typescript": "^5"
-	},
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/juscyllan/obsidian-gantt"
-	}
+  "name": "svgantt",
+  "version": "0.1.0",
+  "description": "Zero-dependency SVG Gantt chart. Dark-first, framework-agnostic.",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles": "./dist/gantt.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "dev": "bun run --watch src/index.ts",
+    "typecheck": "tsgo --noEmit",
+    "format": "biome check --write --unsafe",
+    "lint": "biome ci && bun run typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.6",
+    "@types/bun": "latest",
+    "@typescript/native-preview": "7.0.0-dev.20260326.1"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juscyllan/svgantt"
+  }
 }

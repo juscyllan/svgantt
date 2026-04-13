@@ -1,10 +1,10 @@
-export { createGantt } from './gantt';
+export { createGantt } from './gantt'
 export type {
   GanttData,
   GanttInstance,
   GanttOptions,
-  Task,
-  Phase,
   Milestone,
+  Phase,
+  Task,
   TaskStatus,
-} from './types';
+} from './types'

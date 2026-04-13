@@ -15,7 +15,9 @@
   background: #0a0a0a;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
-.og-labels svg { display: block; }
+.og-labels svg {
+  display: block;
+}
 
 .og-scroll {
   flex: 1;
@@ -29,14 +31,27 @@
   user-select: none;
 }
 
-.og-timeline { position: relative; }
-.og-timeline svg { display: block; }
+.og-timeline {
+  position: relative;
+}
+.og-timeline svg {
+  display: block;
+}
 
 /* Scrollbar */
-.og-scroll::-webkit-scrollbar { height: 6px; }
-.og-scroll::-webkit-scrollbar-track { background: #0a0a0a; }
-.og-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
-.og-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+.og-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.og-scroll::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+.og-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+.og-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
 
 /* Tooltip */
 .og-tooltip {
@@ -46,7 +61,9 @@
   opacity: 0;
   transition: opacity 0.15s ease;
 }
-.og-tooltip.visible { opacity: 1; }
+.og-tooltip.visible {
+  opacity: 1;
+}
 
 .og-tooltip-inner {
   background: rgba(17, 17, 17, 0.92);
@@ -76,7 +93,7 @@
 .og-tooltip-dates {
   font-size: 11px;
   color: #a3a3a3;
-  font-family: var(--font-mono, 'JetBrains Mono'), monospace;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
   margin-bottom: 6px;
 }
 

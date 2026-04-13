@@ -1,4 +1,4 @@
-import { copyFileSync } from 'fs';
+import { copyFileSync } from 'node:fs'
 
 // ESM build
 await Bun.build({
@@ -8,7 +8,7 @@ await Bun.build({
   minify: true,
   sourcemap: 'external',
   naming: '[name].js',
-});
+})
 
 // CJS build
 await Bun.build({
@@ -18,9 +18,9 @@ await Bun.build({
   minify: true,
   sourcemap: 'external',
   naming: '[name].cjs',
-});
+})
 
 // Copy CSS
-copyFileSync('src/gantt.css', 'dist/gantt.css');
+copyFileSync('src/gantt.css', 'dist/gantt.css')
 
-console.log('Built: dist/index.js, dist/index.cjs, dist/gantt.css');
+console.log('Built: dist/index.js, dist/index.cjs, dist/gantt.css')
