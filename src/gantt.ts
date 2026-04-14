@@ -1,16 +1,19 @@
 import {
+  DEFAULT_THEME,
   FONT_MONO,
   FONT_SANS,
   HEADER_H,
   MONTH_NAMES,
   PAD_BOTTOM,
-  STATUS_COLORS,
+  STATUS_META,
+  statusFill,
 } from './constants'
 import { el, svg } from './svg'
 import type {
   GanttData,
   GanttInstance,
   GanttOptions,
+  GanttTheme,
   Phase,
   Task,
 } from './types'
@@ -28,6 +31,8 @@ interface ResolvedOpts {
   dragToScroll: boolean
   tooltip: boolean
   scrollToToday: boolean
+  onTaskClick?: (task: Task) => void
+  onPhaseClick?: (phase: Phase) => void
 }
 
 const DEFAULTS: ResolvedOpts = {
@@ -150,6 +155,8 @@ export function createGantt(
   options?: GanttOptions,
 ): GanttInstance {
   const opts: ResolvedOpts = { ...DEFAULTS, ...options }
+  const theme: GanttTheme = { ...DEFAULT_THEME, ...(options?.theme ?? {}) }
+  const rgb = theme.overlayRgb
   const currentData = { ...data }
   let destroyed = false
   let lastWidth = 0
@@ -259,14 +266,14 @@ export function createGantt(
     const xDayObj = (d: Date) => daysBetween(PS, d) * dayW
 
     // ── LEFT SVG ──
-    const leftSvg = svg(lw, totalHeight, '#0a0a0a')
+    const leftSvg = svg(lw, totalHeight, theme.bgLabels)
     leftSvg.appendChild(
       el('rect', {
         x: 0,
         y: 0,
         width: lw,
         height: totalHeight,
-        fill: '#0a0a0a',
+        fill: theme.bgLabels,
       }),
     )
     leftSvg.appendChild(
@@ -275,7 +282,7 @@ export function createGantt(
         {
           x: lw / 2,
           y: 16,
-          fill: '#3a3a3a',
+          fill: theme.textFaint,
           'font-family': FONT_MONO,
           'font-size': mob ? 9 : 10,
           'font-weight': 600,
@@ -291,13 +298,13 @@ export function createGantt(
         y1: HEADER_H,
         x2: lw,
         y2: HEADER_H,
-        stroke: 'rgba(255,255,255,0.06)',
+        stroke: `rgba(${rgb},0.06)`,
         'stroke-width': 1,
       }),
     )
 
     // ── RIGHT SVG ──
-    const rightSvg = svg(timelineW, totalHeight, 'black')
+    const rightSvg = svg(timelineW, totalHeight, theme.bgTimeline)
 
     const defs = el('defs')
     const glowFilter = el('filter', {
@@ -312,7 +319,7 @@ export function createGantt(
         dx: 0,
         dy: 0,
         stdDeviation: 3,
-        'flood-color': '#fbbf24',
+        'flood-color': theme.accentGlow,
         'flood-opacity': 0.4,
       }),
     )
@@ -325,7 +332,7 @@ export function createGantt(
         y: 0,
         width: timelineW,
         height: totalHeight,
-        fill: 'black',
+        fill: theme.bgTimeline,
       }),
     )
 
@@ -350,7 +357,7 @@ export function createGantt(
           width: w,
           height: 24,
           fill:
-            i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.01)',
+            i % 2 === 0 ? `rgba(${rgb},0.02)` : `rgba(${rgb},0.01)`,
         }),
       )
       rightSvg.appendChild(
@@ -359,7 +366,7 @@ export function createGantt(
           {
             x: x1 + w / 2,
             y: 16,
-            fill: '#525252',
+            fill: theme.textMuted,
             'font-family': FONT_MONO,
             'font-size': mob ? 9 : 11,
             'font-weight': 500,
@@ -377,7 +384,7 @@ export function createGantt(
             y1: 0,
             x2: x1,
             y2: totalHeight,
-            stroke: 'rgba(255,255,255,0.08)',
+            stroke: `rgba(${rgb},0.08)`,
             'stroke-width': 1,
           }),
         )
@@ -394,7 +401,7 @@ export function createGantt(
           y1: HEADER_H,
           x2: x,
           y2: totalHeight,
-          stroke: 'rgba(255,255,255,0.03)',
+          stroke: `rgba(${rgb},0.03)`,
           'stroke-width': 1,
         }),
       )
@@ -405,7 +412,7 @@ export function createGantt(
             {
               x: x + dayW * 3.5,
               y: 38,
-              fill: '#3a3a3a',
+              fill: theme.textFaint,
               'font-family': FONT_MONO,
               'font-size': mob ? 8 : 9,
               'text-anchor': 'middle',
@@ -423,7 +430,7 @@ export function createGantt(
         y1: 24,
         x2: timelineW,
         y2: 24,
-        stroke: 'rgba(255,255,255,0.05)',
+        stroke: `rgba(${rgb},0.05)`,
         'stroke-width': 1,
       }),
     )
@@ -433,7 +440,7 @@ export function createGantt(
         y1: HEADER_H,
         x2: timelineW,
         y2: HEADER_H,
-        stroke: 'rgba(255,255,255,0.06)',
+        stroke: `rgba(${rgb},0.06)`,
         'stroke-width': 1,
       }),
     )
@@ -450,6 +457,12 @@ export function createGantt(
       phase: Phase
     }
     const barRects: BarInfo[] = []
+    interface SidebarRow {
+      el: SVGElement
+      phase?: Phase
+      task?: Task
+    }
+    const sidebarRows: SidebarRow[] = []
     let y = HEADER_H
     let taskIdx = 0
 
@@ -488,6 +501,19 @@ export function createGantt(
           ),
         )
 
+        if (opts.onPhaseClick) {
+          const hit = el('rect', {
+            x: 0,
+            y,
+            width: lw,
+            height: h,
+            fill: 'transparent',
+            style: 'cursor:pointer;',
+          })
+          leftSvg.appendChild(hit)
+          sidebarRows.push({ el: hit, phase: row.phase })
+        }
+
         rightSvg.appendChild(
           el('rect', {
             x: 0,
@@ -500,7 +526,8 @@ export function createGantt(
         )
       } else {
         const { task, phase } = row
-        const sc = STATUS_COLORS[task.status]
+        const sMeta = STATUS_META[task.status]
+        const sFill = statusFill(theme, task.status)
 
         // Alternating stripe
         if (taskIdx % 2 === 1) {
@@ -510,7 +537,7 @@ export function createGantt(
               y,
               width: lw,
               height: h,
-              fill: 'rgba(255,255,255,0.015)',
+              fill: `rgba(${rgb},0.015)`,
             }),
           )
           rightSvg.appendChild(
@@ -519,7 +546,7 @@ export function createGantt(
               y,
               width: timelineW,
               height: h,
-              fill: 'rgba(255,255,255,0.015)',
+              fill: `rgba(${rgb},0.015)`,
             }),
           )
         }
@@ -532,7 +559,7 @@ export function createGantt(
             y1: y,
             x2: lw,
             y2: y,
-            stroke: 'rgba(255,255,255,0.04)',
+            stroke: `rgba(${rgb},0.04)`,
             'stroke-width': 1,
           }),
         )
@@ -542,7 +569,7 @@ export function createGantt(
             y1: y,
             x2: timelineW,
             y2: y,
-            stroke: 'rgba(255,255,255,0.04)',
+            stroke: `rgba(${rgb},0.04)`,
             'stroke-width': 1,
           }),
         )
@@ -558,7 +585,7 @@ export function createGantt(
               cy: dotCy,
               r: dotR,
               fill: 'none',
-              stroke: '#737373',
+              stroke: theme.statusPlannedStroke,
               'stroke-width': 1,
               'stroke-dasharray': '2,1.5',
               opacity: 0.7,
@@ -570,7 +597,7 @@ export function createGantt(
               cx: dotCx,
               cy: dotCy,
               r: dotR,
-              fill: sc.fill,
+              fill: sFill,
               opacity: 0.4,
             }),
           )
@@ -580,7 +607,7 @@ export function createGantt(
               cx: dotCx,
               cy: dotCy,
               r: dotR,
-              fill: sc.fill,
+              fill: sFill,
               opacity: 0.85,
             }),
           )
@@ -598,7 +625,7 @@ export function createGantt(
             {
               x: labelX,
               y: y + h / 2,
-              fill: '#737373',
+              fill: theme.textNormal,
               'font-family': FONT_SANS,
               'font-size': mob ? 10 : 13,
               'font-weight': 500,
@@ -626,13 +653,13 @@ export function createGantt(
 
         if (task.status === 'planned') {
           barAttrs.fill = 'none'
-          barAttrs.stroke = '#737373'
+          barAttrs.stroke = theme.statusPlannedStroke
           barAttrs['stroke-width'] = 1.5
           barAttrs['stroke-dasharray'] = '4,3'
           barAttrs.opacity = 0.5
         } else {
-          barAttrs.fill = sc.fill
-          barAttrs.opacity = sc.opacity
+          barAttrs.fill = sFill
+          barAttrs.opacity = sMeta.opacity
         }
         if (task.status === 'active') barAttrs.filter = 'url(#og-glow)'
 
@@ -662,10 +689,10 @@ export function createGantt(
                 y: barY + barH / 2,
                 fill:
                   task.status === 'planned'
-                    ? '#8a8a8a'
+                    ? theme.textPlannedBar
                     : task.status === 'next'
-                      ? '#c4d6f5'
-                      : '#fff',
+                      ? theme.textNextBar
+                      : theme.textStrong,
                 'font-family': FONT_SANS,
                 'font-size': fontSize,
                 'font-weight': 600,
@@ -689,7 +716,7 @@ export function createGantt(
               {
                 x: barX + barW + 8,
                 y: barY + barH / 2,
-                fill: '#737373',
+                fill: theme.textNormal,
                 'font-family': FONT_SANS,
                 'font-size': fontSize,
                 'font-weight': 500,
@@ -721,6 +748,20 @@ export function createGantt(
           barH,
           phase,
         })
+
+        // Sidebar label hit area (click-to-open on task label)
+        if (opts.onTaskClick) {
+          const labelHit = el('rect', {
+            x: 0,
+            y,
+            width: lw,
+            height: h,
+            fill: 'transparent',
+            style: 'cursor:pointer;',
+          })
+          leftSvg.appendChild(labelHit)
+          sidebarRows.push({ el: labelHit, task })
+        }
       }
 
       y += h
@@ -758,7 +799,7 @@ export function createGantt(
           height: 16,
           rx: 3,
           ry: 3,
-          fill: '#050505',
+          fill: theme.bgMilestoneLabel,
           stroke: ms.color,
           'stroke-width': 0.75,
           opacity: 0.9,
@@ -794,7 +835,7 @@ export function createGantt(
           y1: 24,
           x2: todayX,
           y2: totalHeight,
-          stroke: '#ef4444',
+          stroke: theme.today,
           'stroke-width': 2,
           opacity: 0.55,
         }),
@@ -808,7 +849,7 @@ export function createGantt(
           height: 15,
           rx: 7.5,
           ry: 7.5,
-          fill: '#ef4444',
+          fill: theme.today,
           opacity: 0.9,
         }),
       )
@@ -818,7 +859,7 @@ export function createGantt(
           {
             x: todayX,
             y: 36,
-            fill: '#fff',
+            fill: theme.todayText,
             'font-family': FONT_MONO,
             'font-size': 8,
             'font-weight': 700,
@@ -836,7 +877,7 @@ export function createGantt(
         y1: totalHeight - 1,
         x2: lw,
         y2: totalHeight - 1,
-        stroke: 'rgba(255,255,255,0.06)',
+        stroke: `rgba(${rgb},0.06)`,
         'stroke-width': 1,
       }),
     )
@@ -846,7 +887,7 @@ export function createGantt(
         y1: totalHeight - 1,
         x2: timelineW,
         y2: totalHeight - 1,
-        stroke: 'rgba(255,255,255,0.06)',
+        stroke: `rgba(${rgb},0.06)`,
         'stroke-width': 1,
       }),
     )
@@ -861,79 +902,117 @@ export function createGantt(
       didInitScroll = true
     }
 
-    // ── Tooltip events ──
-    if (opts.tooltip) {
-      for (const item of barRects) {
-        const sc = STATUS_COLORS[item.task.status]
+    // ── Tooltip + click events ──
+    const positionTooltip = (e: MouseEvent) => {
+      const outerRect = outer.getBoundingClientRect()
+      const ttRect = tt.root.getBoundingClientRect()
+      let left = e.clientX - outerRect.left - ttRect.width / 2
+      let top = e.clientY - outerRect.top - ttRect.height - 14
+      if (left < 4) left = 4
+      if (left + ttRect.width > outer.clientWidth - 4)
+        left = outer.clientWidth - ttRect.width - 4
+      if (top < 4) top = e.clientY - outerRect.top + 18 // flip below cursor
+      tt.root.style.left = `${left}px`
+      tt.root.style.top = `${top}px`
+    }
 
-        item.el.addEventListener('mouseenter', () => {
-          if (item.task.status !== 'planned') {
-            item.barEl.setAttribute(
-              'opacity',
-              String(Math.min(sc.opacity + 0.15, 1)),
-            )
-          } else {
-            item.barEl.setAttribute('opacity', '0.65')
-          }
+    for (const item of barRects) {
+      const meta = STATUS_META[item.task.status]
+      const fill = statusFill(theme, item.task.status)
+      const isPlanned = item.task.status === 'planned'
 
-          tt.name.textContent = item.task.name
-          const startD = parseDate(item.task.start)
-          const endD = parseDate(item.task.end)
-          tt.dates.textContent = `${formatDate(startD, opts.locale)} \u2192 ${formatDate(endD, opts.locale)}`
-          const dur = daysBetween(startD, endD) + 1
-          tt.dur.textContent = `${dur} dias`
-
-          if (sc.dotBorder) {
-            tt.dot.style.background = 'transparent'
-            tt.dot.style.border = `1.5px solid ${sc.dotBorder}`
-          } else {
-            tt.dot.style.background = sc.fill
-            tt.dot.style.border = 'none'
-          }
-          tt.status.textContent = sc.label
-
-          tt.root.style.left = '0px'
-          tt.root.style.top = '-9999px'
-          tt.root.classList.add('visible')
-
-          const outerRect = outer.getBoundingClientRect()
-          const barRect = item.el.getBoundingClientRect()
-          const ttRect = tt.root.getBoundingClientRect()
-
-          let left =
-            barRect.left + barRect.width / 2 - outerRect.left - ttRect.width / 2
-          const top = barRect.top - outerRect.top - ttRect.height - 6
-          if (left < 4) left = 4
-          if (left + ttRect.width > outer.clientWidth - 4)
-            left = outer.clientWidth - ttRect.width - 4
-
-          tt.root.style.left = `${left}px`
-          tt.root.style.top = `${Math.max(0, top)}px`
-        })
-
-        item.el.addEventListener('mouseleave', () => {
-          item.barEl.setAttribute(
-            'opacity',
-            String(item.task.status === 'planned' ? 0.5 : sc.opacity),
-          )
-          tt.root.classList.remove('visible')
+      if (opts.onTaskClick) {
+        item.el.addEventListener('click', () => {
+          opts.onTaskClick?.(item.task)
         })
       }
+
+      if (!opts.tooltip) continue
+
+      let enterX = 0
+      let enterY = 0
+      const DISMISS_DIST = 4
+
+      item.el.addEventListener('mouseenter', (e) => {
+        if (!isPlanned) {
+          item.barEl.setAttribute(
+            'opacity',
+            String(Math.min(meta.opacity + 0.15, 1)),
+          )
+        } else {
+          item.barEl.setAttribute('opacity', '0.65')
+        }
+
+        tt.name.textContent = item.task.name
+        const startD = parseDate(item.task.start)
+        const endD = parseDate(item.task.end)
+        tt.dates.textContent = `${formatDate(startD, opts.locale)} \u2192 ${formatDate(endD, opts.locale)}`
+        const dur = daysBetween(startD, endD) + 1
+        tt.dur.textContent = `${dur} dias`
+
+        if (isPlanned) {
+          tt.dot.style.background = 'transparent'
+          tt.dot.style.border = `1.5px solid ${theme.statusPlannedStroke}`
+        } else {
+          tt.dot.style.background = fill
+          tt.dot.style.border = 'none'
+        }
+        tt.status.textContent = meta.label
+
+        tt.root.style.left = '0px'
+        tt.root.style.top = '-9999px'
+        tt.root.classList.add('visible')
+        enterX = e.clientX
+        enterY = e.clientY
+        positionTooltip(e)
+      })
+
+      item.el.addEventListener('mousemove', (e) => {
+        if (!tt.root.classList.contains('visible')) return
+        const dx = e.clientX - enterX
+        const dy = e.clientY - enterY
+        if (dx * dx + dy * dy > DISMISS_DIST * DISMISS_DIST) {
+          tt.root.classList.remove('visible')
+        }
+      })
+
+      item.el.addEventListener('mouseleave', () => {
+        item.barEl.setAttribute(
+          'opacity',
+          String(isPlanned ? 0.5 : meta.opacity),
+        )
+        tt.root.classList.remove('visible')
+      })
+    }
+
+    // ── Sidebar click handlers ──
+    for (const row of sidebarRows) {
+      row.el.addEventListener('click', () => {
+        if (row.task) opts.onTaskClick?.(row.task)
+        else if (row.phase) opts.onPhaseClick?.(row.phase)
+      })
     }
   }
 
   // ── Drag-to-scroll ──
+  const DRAG_THRESHOLD = 4
   let isDragging = false
+  let didDragExceedThreshold = false
   let dragStartX = 0
+  let dragStartPageX = 0
   let dragScrollLeft = 0
 
   function onMouseDown(e: MouseEvent) {
     if (!opts.dragToScroll) return
-    if ((e.target as HTMLElement).closest('[style*="cursor"]')) return
+    if (e.button !== 0) return
     isDragging = true
+    didDragExceedThreshold = false
+    dragStartPageX = e.pageX
     dragStartX = e.pageX - scrollEl.offsetLeft
     dragScrollLeft = scrollEl.scrollLeft
-    scrollEl.classList.add('og-dragging')
+    // Hide tooltip — during drag, content scrolls under the cursor and
+    // mouseleave won't fire on the bar that was hovered.
+    tt.root.classList.remove('visible')
   }
   function onMouseUp() {
     isDragging = false
@@ -941,15 +1020,31 @@ export function createGantt(
   }
   function onMouseMove(e: MouseEvent) {
     if (!isDragging) return
+    const delta = Math.abs(e.pageX - dragStartPageX)
+    if (!didDragExceedThreshold && delta < DRAG_THRESHOLD) return
+    if (!didDragExceedThreshold) {
+      didDragExceedThreshold = true
+      scrollEl.classList.add('og-dragging')
+    }
     e.preventDefault()
     const x = e.pageX - scrollEl.offsetLeft
     scrollEl.scrollLeft = dragScrollLeft - (x - dragStartX) * 1.5
+  }
+
+  // Suppress click after a drag — otherwise clicks fire on mouseup after scrolling
+  function onClickCapture(e: MouseEvent) {
+    if (didDragExceedThreshold) {
+      e.preventDefault()
+      e.stopPropagation()
+      didDragExceedThreshold = false
+    }
   }
 
   scrollEl.addEventListener('mousedown', onMouseDown)
   scrollEl.addEventListener('mouseleave', onMouseUp)
   scrollEl.addEventListener('mouseup', onMouseUp)
   scrollEl.addEventListener('mousemove', onMouseMove)
+  scrollEl.addEventListener('click', onClickCapture, true)
 
   // ── Resize observer ──
   function onResize() {

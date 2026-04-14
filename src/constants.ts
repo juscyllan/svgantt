@@ -1,42 +1,42 @@
-import type { TaskStatus } from './types'
+import type { GanttTheme, TaskStatus } from './types'
 
 export interface StatusStyle {
-  fill: string
   opacity: number
   label: string
-  dotBg: string
-  dotBorder: string | null
 }
 
-export const STATUS_COLORS: Record<TaskStatus, StatusStyle> = {
-  done: {
-    fill: '#10b981',
-    opacity: 0.85,
-    label: 'Concluído',
-    dotBg: '#10b981',
-    dotBorder: null,
-  },
-  active: {
-    fill: '#3b82f6',
-    opacity: 1,
-    label: 'Em andamento',
-    dotBg: '#3b82f6',
-    dotBorder: null,
-  },
-  next: {
-    fill: '#6366f1',
-    opacity: 0.3,
-    label: 'Próximo',
-    dotBg: '#6366f1',
-    dotBorder: null,
-  },
-  planned: {
-    fill: 'none',
-    opacity: 0.5,
-    label: 'Planejado',
-    dotBg: 'transparent',
-    dotBorder: '#525252',
-  },
+export const STATUS_META: Record<TaskStatus, StatusStyle> = {
+  done: { opacity: 0.85, label: 'Concluído' },
+  active: { opacity: 1, label: 'Em andamento' },
+  next: { opacity: 0.3, label: 'Próximo' },
+  planned: { opacity: 0.5, label: 'Planejado' },
+}
+
+export const DEFAULT_THEME: GanttTheme = {
+  statusDone: '#10b981',
+  statusActive: '#3b82f6',
+  statusNext: '#6366f1',
+  statusPlannedStroke: '#525252',
+  today: '#ef4444',
+  todayText: '#ffffff',
+  bgTimeline: '#000000',
+  bgLabels: '#0a0a0a',
+  bgMilestoneLabel: '#050505',
+  textFaint: '#3a3a3a',
+  textMuted: '#525252',
+  textNormal: '#737373',
+  textStrong: '#ffffff',
+  textPlannedBar: '#8a8a8a',
+  textNextBar: '#c4d6f5',
+  accentGlow: '#fbbf24',
+  overlayRgb: '255,255,255',
+}
+
+export function statusFill(theme: GanttTheme, status: TaskStatus): string {
+  if (status === 'done') return theme.statusDone
+  if (status === 'active') return theme.statusActive
+  if (status === 'next') return theme.statusNext
+  return 'none'
 }
 
 export const HEADER_H = 48

@@ -5,12 +5,16 @@ export interface Task {
   start: string // YYYY-MM-DD
   end: string // YYYY-MM-DD
   status: TaskStatus
+  /** Optional identifier passed back to onTaskClick (e.g. file path) */
+  ref?: string
 }
 
 export interface Phase {
   name: string
   accent: string // CSS hex color
   tasks: Task[]
+  /** Optional identifier passed back to onPhaseClick (e.g. file path) */
+  ref?: string
 }
 
 export interface Milestone {
@@ -25,6 +29,32 @@ export interface GanttData {
   projectStart: string
   projectEnd: string
   title?: string
+}
+
+export interface GanttTheme {
+  // Status bar fills
+  statusDone: string
+  statusActive: string
+  statusNext: string
+  statusPlannedStroke: string
+  // Today indicator
+  today: string
+  todayText: string
+  // Backgrounds
+  bgTimeline: string
+  bgLabels: string
+  bgMilestoneLabel: string
+  // Text shades
+  textFaint: string
+  textMuted: string
+  textNormal: string
+  textStrong: string
+  textPlannedBar: string
+  textNextBar: string
+  // Accent (active-status glow)
+  accentGlow: string
+  // Grid/stripe base — rgb triplet, e.g. '255,255,255' (dark) or '0,0,0' (light)
+  overlayRgb: string
 }
 
 export interface GanttOptions {
@@ -52,6 +82,12 @@ export interface GanttOptions {
   tooltip?: boolean
   /** Auto-scroll to today on mount (default: true) */
   scrollToToday?: boolean
+  /** Color theme — partial override of defaults */
+  theme?: Partial<GanttTheme>
+  /** Called on click of a task bar (or its sidebar label) */
+  onTaskClick?: (task: Task) => void
+  /** Called on click of a phase group header (sidebar) */
+  onPhaseClick?: (phase: Phase) => void
 }
 
 export interface GanttInstance {

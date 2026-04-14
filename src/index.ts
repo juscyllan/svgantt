@@ -3,6 +3,7 @@ export type {
   GanttData,
   GanttInstance,
   GanttOptions,
+  GanttTheme,
   Milestone,
   Phase,
   Task,
