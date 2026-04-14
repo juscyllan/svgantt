@@ -929,15 +929,12 @@ export function createGantt(
 
       if (opts.onTaskClick) {
         item.el.addEventListener('click', () => {
+          tt.root.classList.remove('visible')
           opts.onTaskClick?.(item.task)
         })
       }
 
       if (!opts.tooltip) continue
-
-      let enterX = 0
-      let enterY = 0
-      const DISMISS_DIST = 4
 
       item.el.addEventListener('mouseenter', (e) => {
         if (!isPlanned) {
@@ -968,18 +965,7 @@ export function createGantt(
         tt.root.style.left = '0px'
         tt.root.style.top = '-9999px'
         tt.root.classList.add('visible')
-        enterX = e.clientX
-        enterY = e.clientY
         positionTooltip(e)
-      })
-
-      item.el.addEventListener('mousemove', (e) => {
-        if (!tt.root.classList.contains('visible')) return
-        const dx = e.clientX - enterX
-        const dy = e.clientY - enterY
-        if (dx * dx + dy * dy > DISMISS_DIST * DISMISS_DIST) {
-          tt.root.classList.remove('visible')
-        }
       })
 
       item.el.addEventListener('mouseleave', () => {
