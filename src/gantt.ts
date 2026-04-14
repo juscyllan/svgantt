@@ -230,6 +230,8 @@ export function createGantt(
     const outerWidth = outer.clientWidth
     if (outerWidth <= 0) return // not laid out yet — ResizeObserver will retry
     if (outerWidth === lastWidth && labelsEl.querySelector('svg')) return
+    const prevScrollLeft = scrollEl.scrollLeft
+    const hadSvg = !!labelsEl.querySelector('svg')
     lastWidth = outerWidth
 
     labelsEl.innerHTML = ''
@@ -896,10 +898,14 @@ export function createGantt(
     labelsEl.appendChild(leftSvg)
     timelineEl.appendChild(rightSvg)
 
-    // Auto-scroll to today
+    // Scroll behavior:
+    // - First render → auto-center on today
+    // - Re-render where we had content before → restore prior scroll position
     if (!didInitScroll && todayX >= 0 && opts.scrollToToday) {
       scrollEl.scrollLeft = Math.max(0, todayX - availableWidth / 2)
       didInitScroll = true
+    } else if (hadSvg && prevScrollLeft > 0) {
+      scrollEl.scrollLeft = prevScrollLeft
     }
 
     // ── Tooltip + click events ──
@@ -1051,7 +1057,6 @@ export function createGantt(
     clearTimeout(rafId)
     rafId = setTimeout(() => {
       lastWidth = 0
-      didInitScroll = false
       render()
     }, 16)
   }
