@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>svgantt — Obsidian real data test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; color: #e5e5e5; font-family: system-ui; }
+    h1 { padding: 1rem; font-size: 1rem; color: #737373; }
+    p { padding: 0 1rem 1rem; font-size: 0.8rem; color: #525252; }
+    #chart { width: 100%; height: calc(100vh - 5rem); }
+  </style>
+</head>
+<body>
+  <h1>svgantt — Obsidian real data</h1>
+  <p>13 tasks, bounds 2025-08-01 to 2026-12-31 (17 months span)</p>
+  <div id="chart"></div>
+  <script type="module" src="./obsidian-app.ts"></script>
+</body>
+</html>

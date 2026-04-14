@@ -10,24 +10,24 @@ export interface StatusStyle {
 
 export const STATUS_COLORS: Record<TaskStatus, StatusStyle> = {
   done: {
-    fill: '#34d399',
-    opacity: 1,
+    fill: '#10b981',
+    opacity: 0.85,
     label: 'Concluído',
-    dotBg: '#34d399',
+    dotBg: '#10b981',
     dotBorder: null,
   },
   active: {
-    fill: '#fbbf24',
+    fill: '#3b82f6',
     opacity: 1,
     label: 'Em andamento',
-    dotBg: '#fbbf24',
+    dotBg: '#3b82f6',
     dotBorder: null,
   },
   next: {
-    fill: '#60a5fa',
-    opacity: 0.25,
+    fill: '#6366f1',
+    opacity: 0.3,
     label: 'Próximo',
-    dotBg: '#60a5fa',
+    dotBg: '#6366f1',
     dotBorder: null,
   },
   planned: {
@@ -35,7 +35,7 @@ export const STATUS_COLORS: Record<TaskStatus, StatusStyle> = {
     opacity: 0.5,
     label: 'Planejado',
     dotBg: 'transparent',
-    dotBorder: '#737373',
+    dotBorder: '#525252',
   },
 }
 

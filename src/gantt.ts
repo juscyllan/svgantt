@@ -33,8 +33,8 @@ interface ResolvedOpts {
 const DEFAULTS: ResolvedOpts = {
   labelWidth: 200,
   labelWidthMobile: 140,
-  rowHeight: 44,
-  rowHeightMobile: 32,
+  rowHeight: 32,
+  rowHeightMobile: 26,
   minDayWidth: 18,
   mobileBreakpoint: 640,
   locale: 'pt-BR',
@@ -154,7 +154,30 @@ export function createGantt(
   let destroyed = false
   let lastWidth = 0
   let didInitScroll = false
-  let rafId = 0
+  let rafId: ReturnType<typeof setTimeout> = setTimeout(() => {}, 0)
+
+  // Schedule a callback — prefer rAF but fall back to setTimeout
+  // (Obsidian/Electron Bases views don't fire rAF for off-screen panels)
+  function schedule(fn: () => void) {
+    if (typeof requestAnimationFrame === 'function') {
+      let fired = false
+      requestAnimationFrame(() => {
+        if (!fired) {
+          fired = true
+          fn()
+        }
+      })
+      // Fallback if rAF never fires (e.g. Obsidian Bases views)
+      setTimeout(() => {
+        if (!fired) {
+          fired = true
+          fn()
+        }
+      }, 50)
+    } else {
+      setTimeout(fn, 16)
+    }
+  }
 
   // Build DOM structure
   const outer = document.createElement('div')
@@ -187,9 +210,18 @@ export function createGantt(
   // ── Core render ──
 
   function render() {
+    try {
+      renderInner()
+    } catch (err) {
+      console.error('[svgantt] render error:', err)
+    }
+  }
+
+  function renderInner() {
     if (destroyed) return
 
     const outerWidth = outer.clientWidth
+    if (outerWidth <= 0) return // not laid out yet — ResizeObserver will retry
     if (outerWidth === lastWidth && labelsEl.querySelector('svg')) return
     lastWidth = outerWidth
 
@@ -580,7 +612,7 @@ export function createGantt(
         const barX = xDay(task.start)
         const barEndX = xDay(task.end) + dayW
         const barW = Math.max(barEndX - barX, 4)
-        const barH = mob ? 20 : 28
+        const barH = mob ? 14 : 18
         const barY = y + (h - barH) / 2
 
         const barAttrs: Record<string, string | number> = {
@@ -921,26 +953,27 @@ export function createGantt(
 
   // ── Resize observer ──
   function onResize() {
-    cancelAnimationFrame(rafId)
-    rafId = requestAnimationFrame(() => {
+    clearTimeout(rafId)
+    rafId = setTimeout(() => {
       lastWidth = 0
       didInitScroll = false
       render()
-    })
+    }, 16)
   }
 
   const ro = new ResizeObserver(onResize)
   ro.observe(container)
+  ro.observe(outer)
 
   // Initial render
-  requestAnimationFrame(render)
+  schedule(render)
 
   // ── Public API ──
   return {
     update(partial) {
       Object.assign(currentData, partial)
       lastWidth = 0
-      requestAnimationFrame(render)
+      schedule(render)
     },
     scrollToToday() {
       didInitScroll = false
@@ -949,7 +982,7 @@ export function createGantt(
     },
     refresh() {
       lastWidth = 0
-      requestAnimationFrame(render)
+      schedule(render)
     },
     destroy() {
       destroyed = true
@@ -958,7 +991,7 @@ export function createGantt(
       scrollEl.removeEventListener('mouseleave', onMouseUp)
       scrollEl.removeEventListener('mouseup', onMouseUp)
       scrollEl.removeEventListener('mousemove', onMouseMove)
-      cancelAnimationFrame(rafId)
+      clearTimeout(rafId)
       outer.remove()
     },
   }

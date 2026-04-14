@@ -26,8 +26,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.6",
+    "@playwright/test": "^1.59.1",
     "@types/bun": "latest",
-    "@typescript/native-preview": "7.0.0-dev.20260326.1"
+    "@typescript/native-preview": "7.0.0-dev.20260326.1",
+    "playwright": "^1.59.1"
   },
   "license": "MIT",
   "repository": {

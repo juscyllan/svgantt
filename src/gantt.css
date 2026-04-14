@@ -1,17 +1,22 @@
-/* obsidian-gantt — base styles */
+/* svgantt — base styles */
 
 .og-outer {
   display: flex;
+  align-items: flex-start;
   position: relative;
   width: 100%;
-  overflow: hidden;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #000;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
+/* Labels = sidebar: min 100% (fills viewport when content short), grows with content */
 .og-labels {
   flex-shrink: 0;
-  position: sticky;
-  left: 0;
-  z-index: 10;
+  min-height: 100%;
   background: #0a0a0a;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -19,12 +24,18 @@
   display: block;
 }
 
+/* Scroll area: min 100% (scrollbar at viewport bottom when content short),
+   grows with content (scrollbar after content when content taller than viewport) */
 .og-scroll {
   flex: 1;
+  min-height: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   cursor: grab;
+  background: #000;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 .og-scroll.og-dragging {
   cursor: grabbing;
@@ -33,24 +44,37 @@
 
 .og-timeline {
   position: relative;
+  min-height: 100%;
 }
 .og-timeline svg {
   display: block;
 }
 
-/* Scrollbar */
+/* Overlay scrollbars — auto-hide, float over content */
+.og-outer::-webkit-scrollbar,
 .og-scroll::-webkit-scrollbar {
-  height: 6px;
+  width: 8px;
+  height: 8px;
+  background: transparent;
 }
+.og-outer::-webkit-scrollbar-track,
 .og-scroll::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: transparent;
 }
+.og-outer::-webkit-scrollbar-thumb,
 .og-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.2s;
 }
+.og-outer:hover::-webkit-scrollbar-thumb,
+.og-scroll:hover::-webkit-scrollbar-thumb,
+.og-scroll.og-dragging::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.og-outer::-webkit-scrollbar-thumb:hover,
 .og-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Tooltip */
